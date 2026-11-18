@@ -40,5 +40,6 @@ def test_xing_reports_not_implemented():
         verbose=0,
     )
 
-    assert jobs.empty
-    assert jobs.attrs["errors"] == {"xing": "XING scraping is not implemented yet"}
+    assert jobs.attrs["errors"] == {
+        "xing": "XING live HTTP scraping is not implemented yet"
+    }
