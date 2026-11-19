@@ -187,7 +187,7 @@ def inspect_detail_html(html: str) -> None:
     inspect_json_ld(soup)
 
 
-def test_description_extraction(
+def inspect_description_extraction(
     job: JobPost,
     html: str,
 ) -> None:
@@ -294,7 +294,7 @@ def main() -> None:
 
     inspect_detail_html(detail_html)
 
-    test_description_extraction(job, detail_html)
+    inspect_description_extraction(job, detail_html)
 
 
 if __name__ == "__main__":
