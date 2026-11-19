@@ -127,3 +127,29 @@ def normalize_job_id(value: object) -> str | None:
     identifier = normalized.split(".", maxsplit=1)[0]
 
     return f"xing-{identifier}" if identifier else None
+
+
+def normalize_xing_location(value: object) -> str | None:
+    """Normalize a location label from a XING job card."""
+
+    if not isinstance(value, str):
+        return None
+
+    location = " ".join(value.split())
+
+    if not location:
+        return None
+
+    # Remove XING's additional-location counter.
+    # Examples:
+    # Berlin + 0 weitere
+    # Berlin · + 2 weitere
+    # Berlin + 1 weiterer
+    location = re.sub(
+        r"\s*(?:[·•]\s*)?\+\s*\d+\s+weitere(?:r)?\s*$",
+        "",
+        location,
+        flags=re.IGNORECASE,
+    )
+
+    return location.strip() or None

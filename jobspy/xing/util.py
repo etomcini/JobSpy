@@ -15,6 +15,7 @@ from jobspy.model import (
 from jobspy.xing.normalization import (
     normalize_text,
     normalize_xing_job_url,
+    normalize_xing_location,
 )
 
 BASE_URL = "https://www.xing.com"
@@ -189,7 +190,9 @@ def parse_job_card(card: Tag) -> JobPost:
         job_url=job_url,
         title=title,
         company=company,
-        location=Location(city=location_name) if location_name else None,
+        location=Location(city=normalize_xing_location(location_name))
+        if location_name
+        else None,
         job_type=job_types,
         is_remote=parse_remote_location(location_name),
         min_amount=salary.min_amount,
