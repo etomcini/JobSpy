@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from urllib.parse import urljoin, urlsplit, urlunsplit
+from urllib.parse import urljoin, urlsplit
 
 from bs4 import BeautifulSoup
 from bs4.element import Tag
@@ -11,6 +11,10 @@ from jobspy.model import (
     JobPost,
     JobType,
     Location,
+)
+from jobspy.xing.normalization import (
+    normalize_text,
+    normalize_xing_job_url,
 )
 
 BASE_URL = "https://www.xing.com"
@@ -115,22 +119,20 @@ def parse_job_card(card: Tag) -> JobPost:
         raise ValueError("Invalid job URL")
 
     absolute_url = urljoin(BASE_URL, href)
-    parsed_url = urlsplit(absolute_url)
+    job_url = normalize_xing_job_url(absolute_url)
 
-    if parsed_url.hostname != "www.xing.com" or not parsed_url.path.startswith(
-        "/jobs/"
-    ):
+    if job_url is None:
         raise ValueError("Unexpected job URL")
 
-    job_url = urlunsplit(
-        (
-            parsed_url.scheme,
-            parsed_url.netloc,
-            parsed_url.path,
-            "",
-            "",
-        )
-    )
+    # job_url = urlunsplit(
+    #     (
+    #         parsed_url.scheme,
+    #         parsed_url.netloc,
+    #         parsed_url.path,
+    #         "",
+    #         "",
+    #     )
+    # )
 
     company_tag = card.select_one('p[class*="__Company-"]')
 
@@ -163,6 +165,8 @@ def parse_job_card(card: Tag) -> JobPost:
             location_name,
         ).strip()
 
+    parsed_url = urlsplit(job_url)
+
     job_id_match = re.search(
         r"-(\d+)$",
         parsed_url.path,
@@ -170,13 +174,22 @@ def parse_job_card(card: Tag) -> JobPost:
 
     job_id = f"xing-{job_id_match.group(1)}" if job_id_match else None
 
+    title = normalize_text(title_tag.get_text(" ", strip=True))
+
+    if title is None:
+        raise ValueError("Missing job title")
+
+    company = (
+        normalize_text(company_tag.get_text(" ", strip=True)) if company_tag else None
+    )
+
     return JobPost(
         id=job_id,
         site="xing",
         job_url=job_url,
-        title=title_tag.get_text(" ", strip=True),
-        company=(company_tag.get_text(" ", strip=True) if company_tag else None),
-        location=(Location(city=location_name) if location_name else None),
+        title=title,
+        company=company,
+        location=Location(city=location_name) if location_name else None,
         job_type=job_types,
         is_remote=parse_remote_location(location_name),
         min_amount=salary.min_amount,

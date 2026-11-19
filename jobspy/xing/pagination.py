@@ -1,18 +1,37 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from enum import StrEnum
 from typing import Any
 
-from jobspy.xing.exceptions import (
-    XingGraphQLError,
-    XingPageLoadError,
-)
-from jobspy.xing.graphql_parser import parse_graphql_results
+from jobspy.model import JobPost
 
 GraphQLPayload = dict[str, Any]
 GraphQLPageLoader = Callable[[int, int], GraphQLPayload]
 WarningCallback = Callable[[str], None]
+
+
+@dataclass(frozen=True)
+class ParsedGraphQLPage:
+    """One validated and parsed GraphQL search page."""
+
+    payload: GraphQLPayload
+    jobs: list[JobPost]
+    info: PaginationInfo
+    offset: int
+    new_jobs: list[JobPost]
+
+
+@dataclass
+class PaginationProgress:
+    """Metrics and final state of a pagination run."""
+
+    pages_fetched: int = 0
+    raw_jobs_seen: int = 0
+    unique_jobs_seen: int = 0
+    stop_reason: PaginationStopReason | None = None
+    warnings: list[str] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -22,6 +41,16 @@ class PaginationInfo:
     result_count: int
     total: int | None
     total_is_exact: bool
+
+
+class PaginationStopReason(StrEnum):
+    """Reason why GraphQL pagination stopped."""
+
+    COMPLETED = "completed"
+    EXHAUSTED = "exhausted"
+    PARTIAL = "partial"
+    MAX_PAGES = "max_pages"
+    NO_PROGRESS = "no_progress"
 
 
 def parse_pagination_info(
@@ -130,102 +159,22 @@ def iter_graphql_pages(
     allow_partial: bool = False,
     on_warning: WarningCallback | None = None,
 ) -> Iterator[GraphQLPayload]:
-    """Yield GraphQL pages until enough unique jobs are collected."""
+    """Yield raw GraphQL payloads using the shared pagination engine."""
 
-    if required_results < 0:
-        raise ValueError("required_results cannot be negative")
+    from jobspy.xing.pagination_engine import GraphQLPaginationEngine
 
-    if page_size <= 0:
-        raise ValueError("page_size must be positive")
-
-    if max_pages <= 0:
-        raise ValueError("max_pages must be positive")
-
-    if max_no_progress_pages <= 0:
-        raise ValueError("max_no_progress_pages must be positive")
-
-    if required_results == 0:
-        return
-
-    state = PaginationState(
-        offset=0,
+    engine = GraphQLPaginationEngine(
+        loader,
+        required_results=required_results,
         page_size=page_size,
+        max_pages=max_pages,
+        max_no_progress_pages=max_no_progress_pages,
+        allow_partial=allow_partial,
     )
 
-    seen: set[str] = set()
-    no_progress_pages = 0
+    for page in engine:
+        yield page.payload
 
-    def warn(message: str) -> None:
-        if on_warning is not None:
-            on_warning(message)
-
-    for _ in range(max_pages):
-        try:
-            payload = loader(state.offset, state.page_size)
-        except Exception as exc:
-            message = f"XING page loading failed at offset {state.offset}: {exc}"
-
-            if allow_partial and seen:
-                warn(message)
-                return
-
-            raise XingPageLoadError(message) from exc
-
-        try:
-            if not isinstance(payload, dict):
-                raise ValueError("GraphQL payload must be a dictionary")
-
-            if payload.get("errors"):
-                raise ValueError(f"GraphQL errors: {payload['errors']}")
-
-            info = parse_pagination_info(payload)
-            jobs = parse_graphql_results(payload)
-
-        except (ValueError, TypeError) as exc:
-            message = f"Invalid XING GraphQL response at offset {state.offset}: {exc}"
-
-            if allow_partial and seen:
-                warn(message)
-                return
-
-            raise XingGraphQLError(message) from exc
-
-        previous_count = len(seen)
-
-        for job in jobs:
-            key = job.id or job.job_url
-            seen.add(key)
-
-        if len(seen) == previous_count:
-            no_progress_pages += 1
-        else:
-            no_progress_pages = 0
-
-        remaining = required_results - len(seen)
-
-        yield payload
-
-        should_continue = state.should_continue(
-            info,
-            remaining_needed=remaining,
-        )
-
-        state.advance(info)
-
-        if not should_continue:
-            return
-
-        if no_progress_pages >= max_no_progress_pages:
-            warn(
-                "XING pagination stopped after "
-                f"{no_progress_pages} pages without "
-                "new valid jobs"
-            )
-            return
-
-    if len(seen) < required_results:
-        warn(
-            "XING pagination reached max_pages="
-            f"{max_pages} before collecting "
-            f"{required_results} unique jobs"
-        )
+    if on_warning is not None:
+        for warning in engine.progress.warnings:
+            on_warning(warning)

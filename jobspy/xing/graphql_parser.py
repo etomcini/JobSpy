@@ -4,6 +4,14 @@ from typing import Any
 from urllib.parse import urlsplit
 
 from jobspy.model import JobPost, JobType, Location
+from jobspy.xing.normalization import (
+    normalize_job_id,
+    normalize_text,
+    normalize_xing_job_url,
+    safe_dict,
+)
+from jobspy.xing.salary import parse_graphql_salary
+from jobspy.xing.util import parse_job_types
 
 JOB_TYPES: dict[str, JobType] = {
     "full-time": JobType.FULL_TIME,
@@ -34,91 +42,72 @@ def _valid_job_url(url: str) -> bool:
 
 
 def parse_graphql_job(item: dict[str, Any]) -> JobPost:
-    """Convert one GraphQL result item to JobPost."""
+    """Convert one XING GraphQL result into a normalized JobPost."""
 
-    detail = item.get("jobDetail")
+    detail = safe_dict(item.get("jobDetail"))
 
-    if not isinstance(detail, dict):
+    if not detail:
         raise ValueError("Missing job detail")
 
-    url = detail.get("url")
-    title = detail.get("title")
+    job_url = normalize_xing_job_url(detail.get("url"))
+    title = normalize_text(detail.get("title"))
+    job_id = normalize_job_id(detail.get("id"))
 
-    if not isinstance(url, str) or not _valid_job_url(url):
+    if job_url is None:
         raise ValueError("Invalid job URL")
 
-    if not isinstance(title, str) or not title.strip():
+    if title is None:
         raise ValueError("Missing job title")
 
-    raw_id = detail.get("id")
-
-    if not isinstance(raw_id, str) or not raw_id:
+    if job_id is None:
         raise ValueError("Missing job ID")
 
-    company_info = detail.get("companyInfo") or {}
-    company = company_info.get("companyNameOverride")
+    company_info = safe_dict(detail.get("companyInfo"))
+    company = normalize_text(company_info.get("companyNameOverride"))
 
-    location_data = detail.get("location") or {}
-    city = location_data.get("city")
+    location_data = safe_dict(detail.get("location"))
+    city = normalize_text(location_data.get("city"))
 
-    employment = detail.get("employmentType") or {}
-    employment_type = employment.get("localizationValue")
+    employment = safe_dict(detail.get("employmentType"))
+    employment_type = normalize_text(employment.get("localizationValue"))
 
-    salary = detail.get("salary") or {}
-    salary_type = salary.get("__typename")
-
-    salary_source = None
-    min_amount = None
-    max_amount = None
-    currency = None
-
-    if salary_type in {"SalaryRange", "SalaryEstimate"}:
-        min_amount = salary.get("minimum")
-        max_amount = salary.get("maximum")
-        currency = salary.get("currency")
-
-        salary_source = (
-            "estimated" if salary_type == "SalaryEstimate" else "direct_data"
-        )
-
-    elif salary_type == "Salary":
-        amount = salary.get("amount")
-        min_amount = amount
-        max_amount = amount
-        currency = salary.get("currency")
-        salary_source = "direct_data"
-
-    application = detail.get("application") or {}
-    direct_url = (
-        application.get("applyUrl")
-        if application.get("__typename") == "UrlApplication"
-        else None
+    job_types = (
+        parse_job_types([employment_type]) if employment_type is not None else None
     )
 
+    salary = parse_graphql_salary(detail.get("salary"))
+
+    application = safe_dict(detail.get("application"))
+
+    direct_url = None
+
+    if application.get("__typename") == "UrlApplication":
+        direct_url = normalize_text(application.get("applyUrl"))
+
     return JobPost(
-        id=f"xing-{raw_id.split('.')[0]}",
+        id=job_id,
         site="xing",
-        job_url=url,
+        job_url=job_url,
         job_url_direct=direct_url,
-        title=title.strip(),
+        title=title,
         company=company,
         location=Location(city=city) if city else None,
-        job_type=_job_type(employment_type),
-        min_amount=min_amount,
-        max_amount=max_amount,
-        currency=currency,
-        salary_source=salary_source,
+        job_type=job_types,
+        min_amount=salary.min_amount,
+        max_amount=salary.max_amount,
+        currency=salary.currency,
+        salary_source=salary.salary_source,
     )
 
 
 def parse_graphql_results(
     payload: dict[str, Any],
 ) -> list[JobPost]:
-    """Parse XING GraphQL job-search results."""
+    """Parse valid, unique jobs from a XING GraphQL response."""
 
-    data = payload.get("data") or {}
-    search = data.get("jobSearchByQuery") or {}
-    collection = search.get("collection") or []
+    data = safe_dict(payload.get("data"))
+    search = safe_dict(data.get("jobSearchByQuery"))
+    collection = search.get("collection")
 
     if not isinstance(collection, list):
         return []

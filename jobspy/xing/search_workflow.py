@@ -4,21 +4,38 @@ from collections.abc import Callable
 
 from jobspy.model import JobPost, ScraperInput
 from jobspy.xing.detail import enrich_job_post
-from jobspy.xing.exceptions import (
-    XingGraphQLError,
-    XingPageLoadError,
-)
-from jobspy.xing.graphql_parser import parse_graphql_results
 from jobspy.xing.pagination import (
     GraphQLPageLoader,
-    PaginationState,
-    parse_pagination_info,
+    PaginationStopReason,
 )
+from jobspy.xing.pagination_engine import GraphQLPaginationEngine
 from jobspy.xing.search_result import (
     SearchMetrics,
     SearchStatus,
     XingSearchResult,
 )
+
+
+def _map_stop_reason(
+    reason: PaginationStopReason | None,
+) -> SearchStatus:
+    """Translate internal pagination outcomes to public search statuses."""
+
+    match reason:
+        case PaginationStopReason.COMPLETED:
+            return SearchStatus.COMPLETED
+
+        case PaginationStopReason.EXHAUSTED:
+            return SearchStatus.EXHAUSTED
+
+        case PaginationStopReason.PARTIAL:
+            return SearchStatus.PARTIAL
+
+        case PaginationStopReason.MAX_PAGES | PaginationStopReason.NO_PROGRESS:
+            return SearchStatus.LIMIT_REACHED
+
+        case _:
+            raise RuntimeError(f"Unexpected pagination stop reason: {reason}")
 
 
 def run_graphql_search(
@@ -31,115 +48,43 @@ def run_graphql_search(
     max_no_progress_pages: int = 3,
     allow_partial: bool = False,
 ) -> XingSearchResult:
-    """Run an offline, injected-loader GraphQL search."""
-
-    if page_size <= 0:
-        raise ValueError("page_size must be positive")
-    if max_pages <= 0:
-        raise ValueError("max_pages must be positive")
-    if max_no_progress_pages <= 0:
-        raise ValueError("max_no_progress_pages must be positive")
-
-    metrics = SearchMetrics()
-    warnings: list[str] = []
-    jobs: list[JobPost] = []
-    seen: set[str] = set()
+    """Run an offline XING GraphQL search using shared pagination."""
 
     start = scraper_input.offset
     wanted = scraper_input.results_wanted
     required = start + wanted
 
+    # Validate the pagination configuration even for empty searches.
+    engine = GraphQLPaginationEngine(
+        loader,
+        required_results=max(required, 0),
+        page_size=page_size,
+        max_pages=max_pages,
+        max_no_progress_pages=max_no_progress_pages,
+        allow_partial=allow_partial,
+    )
+
     if wanted <= 0:
         return XingSearchResult(
             status=SearchStatus.COMPLETED,
-            metrics=metrics,
+            metrics=SearchMetrics(),
         )
 
-    state = PaginationState(
-        offset=0,
-        page_size=page_size,
+    jobs: list[JobPost] = []
+
+    for page in engine:
+        jobs.extend(page.new_jobs)
+
+    progress = engine.progress
+
+    metrics = SearchMetrics(
+        pages_fetched=progress.pages_fetched,
+        raw_jobs_seen=progress.raw_jobs_seen,
+        unique_jobs_seen=progress.unique_jobs_seen,
     )
 
-    no_progress_pages = 0
-    status = SearchStatus.LIMIT_REACHED
-
-    for _ in range(max_pages):
-        try:
-            payload = loader(state.offset, state.page_size)
-        except Exception as exc:
-            if not allow_partial or not jobs:
-                raise XingPageLoadError(
-                    f"Page loading failed at offset {state.offset}: {exc}"
-                ) from exc
-
-            warnings.append(f"Page loading failed at offset {state.offset}: {exc}")
-            status = SearchStatus.PARTIAL
-            break
-
-        try:
-            if not isinstance(payload, dict):
-                raise ValueError("Invalid GraphQL payload")
-
-            if payload.get("errors"):
-                raise ValueError(f"GraphQL errors: {payload['errors']}")
-
-            info = parse_pagination_info(payload)
-            page_jobs = parse_graphql_results(payload)
-
-        except (ValueError, TypeError) as exc:
-            if not allow_partial or not jobs:
-                raise XingGraphQLError(
-                    f"Invalid response at offset {state.offset}: {exc}"
-                ) from exc
-
-            warnings.append(f"Invalid response at offset {state.offset}: {exc}")
-            status = SearchStatus.PARTIAL
-            break
-
-        metrics.pages_fetched += 1
-        metrics.raw_jobs_seen += info.result_count
-
-        previous_count = len(seen)
-
-        for job in page_jobs:
-            key = job.id or job.job_url
-
-            if key in seen:
-                continue
-
-            seen.add(key)
-            jobs.append(job)
-
-        metrics.unique_jobs_seen = len(seen)
-
-        remaining = required - len(jobs)
-
-        if remaining <= 0:
-            status = SearchStatus.COMPLETED
-            break
-
-        if len(seen) == previous_count:
-            no_progress_pages += 1
-        else:
-            no_progress_pages = 0
-
-        should_continue = state.should_continue(
-            info,
-            remaining_needed=remaining,
-        )
-
-        state.advance(info)
-
-        if not should_continue:
-            status = SearchStatus.EXHAUSTED
-            break
-
-        if no_progress_pages >= max_no_progress_pages:
-            warnings.append(
-                f"Pagination stopped after {no_progress_pages} pages without new jobs"
-            )
-            status = SearchStatus.LIMIT_REACHED
-            break
+    warnings = list(progress.warnings)
+    status = _map_stop_reason(progress.stop_reason)
 
     selected = jobs[start:required]
 

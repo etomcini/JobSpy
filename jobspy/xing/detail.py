@@ -1,15 +1,14 @@
 from __future__ import annotations
 
 import json
-import re
 from datetime import date
 from typing import Any
-from urllib.parse import urlsplit, urlunsplit
 
 from bs4 import BeautifulSoup
 from markdownify import markdownify
 
 from jobspy.model import DescriptionFormat, JobPost
+from jobspy.xing.normalization import normalize_xing_job_url
 
 
 def _get_document(html: str) -> BeautifulSoup:
@@ -118,31 +117,6 @@ def _remote_from_posting(
     return None
 
 
-def _canonical_xing_url(url: str) -> str | None:
-    parsed = urlsplit(url)
-
-    if (
-        parsed.scheme != "https"
-        or parsed.hostname != "www.xing.com"
-        or parsed.port is not None
-        or not re.fullmatch(
-            r"/jobs/[a-zA-Z0-9-]+-\d+/?",
-            parsed.path,
-        )
-    ):
-        return None
-
-    return urlunsplit(
-        (
-            "https",
-            "www.xing.com",
-            parsed.path.rstrip("/"),
-            "",
-            "",
-        )
-    )
-
-
 def parse_job_description(
     html: str,
     description_format: DescriptionFormat = (DescriptionFormat.MARKDOWN),
@@ -191,8 +165,8 @@ def enrich_job_post(
     if not isinstance(detail_url, str):
         return job
 
-    expected_url = _canonical_xing_url(job.job_url)
-    actual_url = _canonical_xing_url(detail_url)
+    expected_url = normalize_xing_job_url(job.job_url)
+    actual_url = normalize_xing_job_url(detail_url)
 
     if expected_url is None or actual_url is None or expected_url != actual_url:
         return job
