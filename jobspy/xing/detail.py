@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 from markdownify import markdownify
 
 from jobspy.model import DescriptionFormat, JobPost
-from jobspy.xing.normalization import normalize_xing_job_url
+from jobspy.xing.normalization import normalize_xing_description, normalize_xing_job_url
 
 
 def _get_document(html: str) -> BeautifulSoup:
@@ -153,7 +153,7 @@ def parse_job_remote(html: str) -> bool | None:
 def enrich_job_post(
     job: JobPost,
     html: str,
-    description_format: DescriptionFormat = (DescriptionFormat.MARKDOWN),
+    description_format: DescriptionFormat = DescriptionFormat.MARKDOWN,
 ) -> JobPost:
     posting = parse_job_posting(html)
 
@@ -181,7 +181,7 @@ def enrich_job_post(
     updates: dict[str, object] = {}
 
     if description is not None:
-        updates["description"] = description
+        updates["description"] = normalize_xing_description(description)
 
     if date_posted is not None:
         updates["date_posted"] = date_posted
@@ -193,3 +193,46 @@ def enrich_job_post(
         return job
 
     return job.model_copy(update=updates)
+
+
+def extract_xing_html_description(html: str) -> str | None:
+    """Extract a job description from XING's HTML detail section."""
+
+    soup = BeautifulSoup(html, "html.parser")
+
+    container = soup.select_one('[data-testid="expandable-content"]')
+
+    if container is None:
+        return None
+
+    sections: list[str] = []
+
+    for section in container.select("section"):
+        heading = section.find(["h2", "h3"])
+
+        content = section.select_one('[class*="StyledContent"]')
+
+        if content is None:
+            continue
+
+        parts: list[str] = []
+
+        if heading is not None:
+            parts.append(heading.get_text(" ", strip=True))
+
+        for element in content.find_all(
+            ["p", "li"],
+        ):
+            # Avoid duplicate text from nested elements.
+            if element.find_parent(["p", "li"]) is not None:
+                continue
+
+            value = element.get_text(" ", strip=True)
+
+            if value:
+                parts.append(value)
+
+        if parts:
+            sections.append("\n".join(parts))
+
+    return "\n\n".join(sections) or None

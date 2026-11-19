@@ -153,3 +153,20 @@ def normalize_xing_location(value: object) -> str | None:
     )
 
     return location.strip() or None
+
+
+def normalize_xing_description(
+    description: str | None,
+) -> str | None:
+    """Remove leading artifacts from XING descriptions."""
+    if not description:
+        return None
+
+    cleaned = re.sub(
+        r"^\s*null[ \t]*(?:\r?\n)+",
+        "",
+        description,
+        flags=re.IGNORECASE,
+    )
+
+    return cleaned.strip() or None
