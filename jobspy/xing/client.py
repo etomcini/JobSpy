@@ -45,4 +45,9 @@ class XingClient:
 
         check_status(response)
 
+        if response.status_code != 200:
+            raise ValueError(f"Unexpected XING HTTP status: {response.status_code}")
+
+        response.encoding = "utf-8"
+
         return response.text

@@ -72,16 +72,20 @@ def test_xing_empty_results_preserve_dataframe_schema() -> None:
     assert list(result.columns) == list(JobPost.model_fields)
 
 
-def test_xing_reports_missing_page_loader() -> None:
-    result = scrape_jobs(
-        site_name=["xing"],
-        search_term="Python Developer",
-        verbose=0,
-    )
+def test_xing_public_api_uses_html_fallback() -> None:
+    with (
+        patch.object(Xing, "page_loader_factory", None),
+        patch.object(
+            Xing,
+            "_scrape_html",
+            return_value=[],
+        ) as mock_html,
+    ):
+        result = scrape_jobs(
+            site_name=["xing"],
+            search_term="Python Developer",
+            verbose=0,
+        )
 
     assert result.empty
-    assert "xing" in result.attrs["errors"]
-
-    error = result.attrs["errors"]["xing"]
-
-    assert "no permitted page loader is configured" in error.lower()
+    mock_html.assert_called_once()
