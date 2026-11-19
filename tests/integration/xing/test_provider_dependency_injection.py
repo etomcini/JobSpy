@@ -79,11 +79,14 @@ def test_scrape_jobs_with_injected_xing_loader(
     assert job["company"] == "Example Company"
 
 
-def test_scrape_jobs_without_loader_returns_error() -> None:
-    with patch.object(
-        Xing,
-        "page_loader_factory",
-        None,
+def test_scrape_jobs_without_graphql_loader_uses_html() -> None:
+    with (
+        patch.object(Xing, "page_loader_factory", None),
+        patch.object(
+            Xing,
+            "_scrape_html",
+            return_value=[],
+        ) as mock_html,
     ):
         result = scrape_jobs(
             site_name=["xing"],
@@ -92,7 +95,15 @@ def test_scrape_jobs_without_loader_returns_error() -> None:
         )
 
     assert result.empty
-    assert "xing" in result.attrs["errors"]
+    mock_html.assert_called_once()
+
+    args = mock_html.call_args.args
+
+    scraper_input = args[0]
+    config = args[1]
+
+    assert scraper_input.search_term == "Python Developer"
+    assert config.keywords == "Python Developer"
 
 
 def test_scrape_jobs_handles_loader_failure() -> None:

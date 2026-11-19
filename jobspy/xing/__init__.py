@@ -2,8 +2,12 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterable
 from typing import Any, ClassVar
+from urllib.parse import urlencode
+
+from requests import Session
 
 from jobspy.model import JobPost, Scraper, ScraperInput
+from jobspy.xing.client import XingClient
 from jobspy.xing.config import XingSearchConfig
 from jobspy.xing.detail import enrich_job_post
 from jobspy.xing.graphql_parser import parse_graphql_results
@@ -28,6 +32,40 @@ class Xing(Scraper):
     page_loader_factory: ClassVar[
         Callable[[XingSearchConfig], GraphQLPageLoader] | None
     ] = None
+
+    def _scrape_html(
+        self,
+        scraper_input: ScraperInput,
+        config: XingSearchConfig,
+    ) -> list[JobPost]:
+        """Retrieve and parse public XING HTML job listings."""
+
+        params = {"keywords": config.keywords}
+
+        if config.location:
+            params["location"] = config.location
+
+        search_url = "https://www.xing.com/jobs/search/ki?" + urlencode(params)
+
+        with Session() as session:
+            session.headers.update(
+                {
+                    "User-Agent": "JobSpy-XING-Integration-Test/0.1",
+                    "Accept": "text/html",
+                }
+            )
+
+            client = XingClient(session)
+
+            search_html = client.get_html(search_url)
+
+            detail_loader = client.get_html if scraper_input.fetch_description else None
+
+            return self.process_results(
+                scraper_input,
+                search_html,
+                detail_loader=detail_loader,
+            )
 
     def process_results(
         self,
@@ -156,27 +194,46 @@ class Xing(Scraper):
         self,
         scraper_input: ScraperInput,
     ) -> list[JobPost]:
-        """Run XING search using a configured page loader."""
-
-        loader_factory = self._page_loader_factory
-
-        if loader_factory is None:
-            loader_factory = type(self).page_loader_factory
-
-        if loader_factory is None:
-            self.fail(
-                "XING live retrieval is unavailable: no permitted page loader is configured"
-            )
-            return []
+        """Run XING search using GraphQL or public HTML."""
 
         try:
             config = XingSearchConfig.from_scraper_input(scraper_input)
 
-            page_loader = loader_factory(config)
+            loader_factory = self._page_loader_factory
 
-            return self.process_graphql_search(
+            if loader_factory is None:
+                loader_factory = type(self).page_loader_factory
+
+            if loader_factory is not None:
+                page_loader = loader_factory(config)
+
+                return self.process_graphql_search(
+                    scraper_input,
+                    page_loader,
+                )
+
+            # Default: use public HTML search.
+            if scraper_input.is_remote:
+                self.warn(
+                    "XING remote search filtering is not "
+                    "implemented; ignoring is_remote"
+                )
+
+            if scraper_input.job_type is not None:
+                self.warn(
+                    "XING job type search filtering is not "
+                    "implemented; ignoring job_type"
+                )
+
+            if scraper_input.hours_old is not None:
+                self.warn(
+                    "XING publication-time filtering is not "
+                    "implemented; ignoring hours_old"
+                )
+
+            return self._scrape_html(
                 scraper_input,
-                page_loader,
+                config,
             )
 
         except Exception as exc:

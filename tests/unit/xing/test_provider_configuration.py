@@ -3,8 +3,11 @@ from __future__ import annotations
 from typing import Any
 from unittest.mock import Mock, patch
 
+import pytest
+
 from jobspy.model import ScraperInput
 from jobspy.xing import Xing
+from jobspy.xing.config import XingSearchConfig
 
 
 def make_input() -> ScraperInput:
@@ -106,15 +109,78 @@ def test_loader_runtime_failure_is_reported() -> None:
     assert "Page retrieval failed" in scraper.error
 
 
-def test_missing_loader_is_reported() -> None:
-    with patch.object(
-        Xing,
-        "page_loader_factory",
-        None,
+def test_missing_graphql_loader_uses_html_fallback() -> None:
+    scraper = Xing()
+    scraper_input = make_input()
+
+    with (
+        patch.object(Xing, "page_loader_factory", None),
+        patch.object(
+            scraper,
+            "_scrape_html",
+            return_value=[],
+        ) as mock_html,
     ):
-        scraper = Xing()
-        jobs = scraper.scrape(make_input())
+        jobs = scraper.scrape(scraper_input)
 
     assert jobs == []
-    assert scraper.error is not None
-    assert "no permitted page loader" in scraper.error.lower()
+    mock_html.assert_called_once()
+
+    args = mock_html.call_args.args
+
+    assert args[0] is scraper_input
+    assert args[1].keywords == scraper_input.search_term
+
+
+@pytest.mark.parametrize(
+    ("location", "expected_url"),
+    [
+        (
+            "Berlin",
+            "https://www.xing.com/jobs/search/ki"
+            "?keywords=Python+Developer&location=Berlin",
+        ),
+        (
+            None,
+            "https://www.xing.com/jobs/search/ki?keywords=Python+Developer",
+        ),
+    ],
+)
+def test_html_fallback_fetches_search_page(
+    location: str | None,
+    expected_url: str,
+) -> None:
+    scraper = Xing()
+    scraper_input = make_input()
+    scraper_input.location = location
+
+    config = XingSearchConfig.from_scraper_input(scraper_input)
+
+    html = "<html><body></body></html>"
+
+    with (
+        patch(
+            "jobspy.xing.XingClient.get_html",
+            return_value=html,
+        ) as mock_get,
+        patch.object(
+            scraper,
+            "process_results",
+            return_value=[],
+        ) as mock_process,
+    ):
+        jobs = scraper._scrape_html(
+            scraper_input,
+            config,
+        )
+
+    assert jobs == []
+
+    mock_get.assert_called_once_with(expected_url)
+
+    mock_process.assert_called_once()
+
+    args = mock_process.call_args.args
+
+    assert args[0] is scraper_input
+    assert args[1] == html
