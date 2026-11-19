@@ -9,8 +9,8 @@ from jobspy.xing.exceptions import (
     XingPageLoadError,
 )
 from jobspy.xing.graphql_parser import parse_graphql_results
-from jobspy.xing.page_loader import GraphQLPageLoader
 from jobspy.xing.pagination import (
+    GraphQLPageLoader,
     PaginationState,
     parse_pagination_info,
 )
