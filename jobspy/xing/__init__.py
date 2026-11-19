@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Iterable
-from typing import Any
+from typing import Any, ClassVar
 
 from jobspy.model import JobPost, Scraper, ScraperInput
 from jobspy.xing.detail import enrich_job_post
@@ -14,6 +14,8 @@ from jobspy.xing.util import parse_search_results
 
 class Xing(Scraper):
     """XING job scraper orchestration."""
+
+    page_loader_factory: ClassVar[Callable[[], GraphQLPageLoader] | None] = None
 
     def process_results(
         self,
@@ -142,8 +144,27 @@ class Xing(Scraper):
         self,
         scraper_input: ScraperInput,
     ) -> list[JobPost]:
-        self.fail("XING live HTTP scraping is not implemented yet")
-        return []
+        """Run the XING search using a configured page loader."""
+
+        loader_factory = type(self).page_loader_factory
+
+        if loader_factory is None:
+            self.fail(
+                "XING live retrieval is unavailable: no permitted page loader is configured"
+            )
+            return []
+
+        try:
+            page_loader = loader_factory()
+
+            return self.process_graphql_search(
+                scraper_input,
+                page_loader,
+            )
+
+        except Exception as exc:
+            self.fail(f"XING search failed: {exc}")
+            return []
 
     def process_graphql_search(
         self,

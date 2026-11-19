@@ -31,7 +31,7 @@ def test_xing_accepts_search_input():
     assert scraper_input.location == "Berlin"
 
 
-def test_xing_reports_not_implemented():
+def test_xing_reports_missing_page_loader() -> None:
     jobs = scrape_jobs(
         site_name="xing",
         search_term="Python Developer",
@@ -40,6 +40,10 @@ def test_xing_reports_not_implemented():
         verbose=0,
     )
 
+    assert jobs.empty
+
     assert jobs.attrs["errors"] == {
-        "xing": "XING live HTTP scraping is not implemented yet"
+        "xing": (
+            "XING live retrieval is unavailable: no permitted page loader is configured"
+        )
     }
