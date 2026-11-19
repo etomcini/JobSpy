@@ -4,6 +4,7 @@ from collections.abc import Callable, Iterable
 from typing import Any, ClassVar
 
 from jobspy.model import JobPost, Scraper, ScraperInput
+from jobspy.xing.config import XingSearchConfig
 from jobspy.xing.detail import enrich_job_post
 from jobspy.xing.graphql_parser import parse_graphql_results
 from jobspy.xing.page_loader import GraphQLPageLoader
@@ -17,13 +18,16 @@ class Xing(Scraper):
 
     def __init__(
         self,
-        page_loader_factory: Callable[[], GraphQLPageLoader] | None = None,
+        page_loader_factory: (
+            Callable[[XingSearchConfig], GraphQLPageLoader] | None
+        ) = None,
     ) -> None:
         super().__init__()
-
         self._page_loader_factory = page_loader_factory
 
-    page_loader_factory: ClassVar[Callable[[], GraphQLPageLoader] | None] = None
+    page_loader_factory: ClassVar[
+        Callable[[XingSearchConfig], GraphQLPageLoader] | None
+    ] = None
 
     def process_results(
         self,
@@ -166,7 +170,9 @@ class Xing(Scraper):
             return []
 
         try:
-            page_loader = loader_factory()
+            config = XingSearchConfig.from_scraper_input(scraper_input)
+
+            page_loader = loader_factory(config)
 
             return self.process_graphql_search(
                 scraper_input,

@@ -69,8 +69,8 @@ def test_two_instances_use_independent_loaders() -> None:
         }
     )
 
-    first = Xing(page_loader_factory=lambda: first_loader)
-    second = Xing(page_loader_factory=lambda: second_loader)
+    first = Xing(page_loader_factory=lambda config: first_loader)
+    second = Xing(page_loader_factory=lambda config: second_loader)
 
     first_jobs = first.scrape(make_input())
     second_jobs = second.scrape(make_input())
@@ -97,7 +97,7 @@ def test_factory_initialization_failure_is_reported() -> None:
 def test_loader_runtime_failure_is_reported() -> None:
     loader = Mock(side_effect=RuntimeError("Page retrieval failed"))
 
-    scraper = Xing(page_loader_factory=lambda: loader)
+    scraper = Xing(page_loader_factory=lambda config: loader)
 
     jobs = scraper.scrape(make_input())
 

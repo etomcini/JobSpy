@@ -2,12 +2,13 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 from typing import Any
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pytest
 
 from jobspy import scrape_jobs
 from jobspy.xing import Xing
+from jobspy.xing.config import XingSearchConfig
 
 
 def make_page() -> dict[str, Any]:
@@ -114,3 +115,32 @@ def test_scrape_jobs_handles_loader_failure() -> None:
 
     assert result.empty
     assert "xing" in result.attrs["errors"]
+
+
+def test_search_configuration_reaches_loader_factory() -> None:
+    page_loader = Mock(return_value=make_page())
+    factory = Mock(return_value=page_loader)
+
+    with patch.object(
+        Xing,
+        "page_loader_factory",
+        factory,
+    ):
+        result = scrape_jobs(
+            site_name=["xing"],
+            search_term="  Python Developer  ",
+            location="  Berlin  ",
+            results_wanted=1,
+            verbose=0,
+        )
+
+    assert len(result) == 1
+
+    factory.assert_called_once_with(
+        XingSearchConfig(
+            keywords="Python Developer",
+            location="Berlin",
+            is_remote=False,
+            job_type=None,
+        )
+    )
