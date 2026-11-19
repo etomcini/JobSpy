@@ -15,6 +15,14 @@ from jobspy.xing.util import parse_search_results
 class Xing(Scraper):
     """XING job scraper orchestration."""
 
+    def __init__(
+        self,
+        page_loader_factory: Callable[[], GraphQLPageLoader] | None = None,
+    ) -> None:
+        super().__init__()
+
+        self._page_loader_factory = page_loader_factory
+
     page_loader_factory: ClassVar[Callable[[], GraphQLPageLoader] | None] = None
 
     def process_results(
@@ -144,9 +152,12 @@ class Xing(Scraper):
         self,
         scraper_input: ScraperInput,
     ) -> list[JobPost]:
-        """Run the XING search using a configured page loader."""
+        """Run XING search using a configured page loader."""
 
-        loader_factory = type(self).page_loader_factory
+        loader_factory = self._page_loader_factory
+
+        if loader_factory is None:
+            loader_factory = type(self).page_loader_factory
 
         if loader_factory is None:
             self.fail(
