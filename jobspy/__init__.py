@@ -30,6 +30,7 @@ from jobspy.naukri import Naukri
 from jobspy.util import (
     configure_logging,
 )
+from jobspy.xing import Xing
 from jobspy.ziprecruiter import ZipRecruiter
 
 __all__ = ["scrape_jobs"]
@@ -44,6 +45,7 @@ SCRAPER_MAPPING: dict[Site, type[Scraper]] = {
     Site.NAUKRI: Naukri,
     Site.BDJOBS: BDJobs,
     Site.HELLOWORK: HelloWork,
+    Site.XING: Xing,
 }
 
 column_types = {

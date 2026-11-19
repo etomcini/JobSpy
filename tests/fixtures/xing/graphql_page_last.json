@@ -1,0 +1,371 @@
+{
+    "data": {
+        "jobSearchByQuery": {
+            "total": -1,
+            "trackingToken": "591d2cc1e37c11f18a3a461519d8a493",
+            "searchQuery": {
+                "guid": "d1e94395ff2f2b90b75c64416aa07b4c",
+                "body": {
+                    "keywords": "python developer",
+                    "location": {
+                        "text": null,
+                        "radius": null,
+                        "city": {
+                            "id": "2867714.724c7f",
+                            "name": "Munich",
+                            "__typename": "City"
+                        },
+                        "__typename": "JobSearchQueryLocation"
+                    },
+                    "filterCollection": null,
+                    "__typename": "JobSearchQueryBody"
+                },
+                "__typename": "JobSearchQuery"
+            },
+            "appliedFilters": {
+                "extractedFilters": null,
+                "__typename": "JobAppliedFilterResult"
+            },
+            "collection": [
+                {
+                    "trackingToken": "591d2cc1e37c11f18a3a461519d8a493.0.156968451",
+                    "position": 0,
+                    "descriptionHighlight": null,
+                    "jobDetail": {
+                        "activeUntil": "2027-08-04T14:24:23Z",
+                        "id": "156968451.506759",
+                        "slug": "muenchen-full-stack-engineer-156968451",
+                        "prioritized": true,
+                        "summary": {
+                            "content": {
+                                "keyResponsibilities": [
+                                    "Design and maintain APIs for products.",
+                                    "Manage databases for product and data.",
+                                    "Collaborate with teams for software integration."
+                                ],
+                                "__typename": "JobSummaryContentV2"
+                            },
+                            "__typename": "JobSummaryV2"
+                        },
+                        "url": "https://www.xing.com/jobs/muenchen-full-stack-engineer-156968451",
+                        "title": "FULL STACK ENGINEER (f/m/d)",
+                        "refreshedAt": "2026-08-04T14:24:22Z",
+                        "globalId": "surn:x-xing:jobs:posting:156968451.506759",
+                        "redirectsToThirdPartyUrl": false,
+                        "paid": true,
+                        "topJob": false,
+                        "location": {
+                            "city": "München",
+                            "__typename": "JobLocation"
+                        },
+                        "locations": [
+                            {
+                                "city": "München",
+                                "__typename": "JobLocation"
+                            }
+                        ],
+                        "employmentType": {
+                            "localizationValue": "Full-time",
+                            "__typename": "EmploymentType"
+                        },
+                        "companyInfo": {
+                            "companyNameOverride": "Omnisent",
+                            "company": null,
+                            "__typename": "JobCompanyInfo"
+                        },
+                        "salary": {
+                            "currency": "EUR",
+                            "minimum": 55000,
+                            "maximum": 71500,
+                            "median": 62500,
+                            "__typename": "SalaryEstimate"
+                        },
+                        "application": {
+                            "__typename": "JobXingCustomApplication"
+                        },
+                        "__typename": "VisibleJob",
+                        "userInteractions": {
+                            "application": null,
+                            "bookmark": {
+                                "state": "NOT_BOOKMARKED",
+                                "__typename": "JobBookmark"
+                            },
+                            "__typename": "JobUserInteractions"
+                        },
+                        "serviceOfferingGroup": 0,
+                        "userProfileMatches": null
+                    },
+                    "matchingHighlightsV2": {
+                        "token": "591d2cc1e37c11f18a3a461519d8a493.0.156968451",
+                        "highlight": null,
+                        "matchingFacts": [],
+                        "nonMatchingFacts": [
+                            {
+                                "__typename": "JobMatchingHighlightsJobKeyfactStringV2",
+                                "type": "job_keyfact_employment_type",
+                                "localization": {
+                                    "localizationValue": "Full-time",
+                                    "__typename": "JobMatchingHighlightsLocalizableV2"
+                                },
+                                "localizationA11y": {
+                                    "localizationValue": "Full-time",
+                                    "__typename": "JobMatchingHighlightsLocalizableV2"
+                                }
+                            },
+                            {
+                                "__typename": "JobMatchingHighlightsJobKeyfactSalaryV2",
+                                "type": "job_keyfact_salary",
+                                "localization": {
+                                    "localizationValue": "EUR 55000 - EUR 71500",
+                                    "__typename": "JobMatchingHighlightsLocalizableV2"
+                                },
+                                "localizationA11y": {
+                                    "localizationValue": "EUR 55000 - EUR 71500",
+                                    "__typename": "JobMatchingHighlightsLocalizableV2"
+                                },
+                                "value": {
+                                    "currency": "EUR",
+                                    "minimum": 55000,
+                                    "maximum": 71500,
+                                    "__typename": "SalaryRange"
+                                }
+                            }
+                        ],
+                        "__typename": "JobMatchingHighlightsV2"
+                    },
+                    "__typename": "JobItemResult"
+                },
+                {
+                    "trackingToken": "591d2cc1e37c11f18a3a461519d8a493.1.154535463",
+                    "position": 1,
+                    "descriptionHighlight": null,
+                    "jobDetail": {
+                        "activeUntil": "2026-11-19T14:42:20Z",
+                        "id": "154535463.e7bea6",
+                        "slug": "muenchen-finance-data-engineer-154535463",
+                        "prioritized": false,
+                        "summary": null,
+                        "url": "https://www.xing.com/jobs/muenchen-finance-data-engineer-154535463",
+                        "title": "Finance Data Engineer",
+                        "refreshedAt": "2026-11-18T05:46:30Z",
+                        "globalId": "surn:x-xing:jobs:posting:154535463.e7bea6",
+                        "redirectsToThirdPartyUrl": false,
+                        "paid": false,
+                        "topJob": false,
+                        "location": {
+                            "city": "München",
+                            "__typename": "JobLocation"
+                        },
+                        "locations": [
+                            {
+                                "city": "München",
+                                "__typename": "JobLocation"
+                            }
+                        ],
+                        "employmentType": {
+                            "localizationValue": "Full-time",
+                            "__typename": "EmploymentType"
+                        },
+                        "companyInfo": {
+                            "companyNameOverride": "Helsing",
+                            "company": {
+                                "id": "2005161.d63c28",
+                                "logos": {
+                                    "x1": "https://www.xing.com/imagecache/public/scaled_original_image/eyJ1dWlkIjoiMWFhZmZmMmYtNDZiNi00MzM1LThhNTAtMjgwMjQ2ZjAzNWQ2IiwiYXBwX2NvbnRleHQiOiJlbnRpdHktcGFnZXMiLCJtYXhfd2lkdGgiOjk2LCJtYXhfaGVpZ2h0Ijo5Nn0?signature=b27a86391743438460ec805c65fff798228d5f5d83e74ca0fbef452d4778e1a0",
+                                    "__typename": "CompanyLogos"
+                                },
+                                "__typename": "Company"
+                            },
+                            "__typename": "JobCompanyInfo"
+                        },
+                        "salary": {
+                            "currency": "EUR",
+                            "minimum": 56000,
+                            "maximum": 73000,
+                            "median": 68500,
+                            "__typename": "SalaryEstimate"
+                        },
+                        "application": {
+                            "__typename": "UrlApplication",
+                            "applyUrl": "https://helsing.ai/de/jobs/4871604101?utm_source=xing.com"
+                        },
+                        "__typename": "VisibleJob",
+                        "userInteractions": {
+                            "application": null,
+                            "bookmark": {
+                                "state": "NOT_BOOKMARKED",
+                                "__typename": "JobBookmark"
+                            },
+                            "__typename": "JobUserInteractions"
+                        },
+                        "serviceOfferingGroup": 0,
+                        "userProfileMatches": null
+                    },
+                    "matchingHighlightsV2": {
+                        "token": "591d2cc1e37c11f18a3a461519d8a493.1.154535463",
+                        "highlight": {
+                            "type": "job_highlight_last_chance",
+                            "localization": {
+                                "localizationValue": "Last chance",
+                                "__typename": "JobMatchingHighlightsLocalizableV2"
+                            },
+                            "localizationA11y": {
+                                "localizationValue": "Last chance",
+                                "__typename": "JobMatchingHighlightsLocalizableV2"
+                            },
+                            "__typename": "JobMatchingHighlightsJobHighlightV2"
+                        },
+                        "matchingFacts": [],
+                        "nonMatchingFacts": [
+                            {
+                                "__typename": "JobMatchingHighlightsJobKeyfactStringV2",
+                                "type": "job_keyfact_employment_type",
+                                "localization": {
+                                    "localizationValue": "Full-time",
+                                    "__typename": "JobMatchingHighlightsLocalizableV2"
+                                },
+                                "localizationA11y": {
+                                    "localizationValue": "Full-time",
+                                    "__typename": "JobMatchingHighlightsLocalizableV2"
+                                }
+                            },
+                            {
+                                "__typename": "JobMatchingHighlightsJobKeyfactSalaryV2",
+                                "type": "job_keyfact_salary",
+                                "localization": {
+                                    "localizationValue": "EUR 56000 - EUR 73000",
+                                    "__typename": "JobMatchingHighlightsLocalizableV2"
+                                },
+                                "localizationA11y": {
+                                    "localizationValue": "EUR 56000 - EUR 73000",
+                                    "__typename": "JobMatchingHighlightsLocalizableV2"
+                                },
+                                "value": {
+                                    "currency": "EUR",
+                                    "minimum": 56000,
+                                    "maximum": 73000,
+                                    "__typename": "SalaryRange"
+                                }
+                            }
+                        ],
+                        "__typename": "JobMatchingHighlightsV2"
+                    },
+                    "__typename": "JobItemResult"
+                },
+                {
+                    "trackingToken": "591d2cc1e37c11f18a3a461519d8a493.2.159116405",
+                    "position": 2,
+                    "descriptionHighlight": null,
+                    "jobDetail": {
+                        "activeUntil": "2027-11-11T01:20:52Z",
+                        "id": "159116405.f4d345",
+                        "slug": "muenchen-software-developern-engineering-159116405",
+                        "prioritized": false,
+                        "summary": null,
+                        "url": "https://www.xing.com/jobs/muenchen-software-developern-engineering-159116405",
+                        "title": "Software Developern Engineering (m/f/d)",
+                        "refreshedAt": "2026-11-11T01:16:22Z",
+                        "globalId": "surn:x-xing:jobs:posting:159116405.f4d345",
+                        "redirectsToThirdPartyUrl": false,
+                        "paid": false,
+                        "topJob": false,
+                        "location": {
+                            "city": "München",
+                            "__typename": "JobLocation"
+                        },
+                        "locations": [
+                            {
+                                "city": "München",
+                                "__typename": "JobLocation"
+                            }
+                        ],
+                        "employmentType": {
+                            "localizationValue": "Full-time",
+                            "__typename": "EmploymentType"
+                        },
+                        "companyInfo": {
+                            "companyNameOverride": "Xtended Engineering GmbH",
+                            "company": {
+                                "id": "2204599.ad3a58",
+                                "logos": {
+                                    "x1": "https://www.xing.com/imagecache/public/scaled_original_image/eyJ1dWlkIjoiNjI0ZDExMWEtYTIxZi00YzYwLWJiNTQtZTczYTJhNmM4NGU5IiwiYXBwX2NvbnRleHQiOiJlbnRpdHktcGFnZXMiLCJtYXhfd2lkdGgiOjk2LCJtYXhfaGVpZ2h0Ijo5Nn0?signature=9082ceb4c20879d32c5e54109c381d62554e7d0d22ff345650c2e79574666877",
+                                    "__typename": "CompanyLogos"
+                                },
+                                "__typename": "Company"
+                            },
+                            "__typename": "JobCompanyInfo"
+                        },
+                        "salary": {
+                            "currency": "EUR",
+                            "minimum": 70500,
+                            "maximum": 93000,
+                            "median": 83000,
+                            "__typename": "SalaryEstimate"
+                        },
+                        "application": {
+                            "__typename": "JobXingApplication"
+                        },
+                        "__typename": "VisibleJob",
+                        "userInteractions": {
+                            "application": null,
+                            "bookmark": {
+                                "state": "NOT_BOOKMARKED",
+                                "__typename": "JobBookmark"
+                            },
+                            "__typename": "JobUserInteractions"
+                        },
+                        "serviceOfferingGroup": 0,
+                        "userProfileMatches": null
+                    },
+                    "matchingHighlightsV2": {
+                        "token": "591d2cc1e37c11f18a3a461519d8a493.2.159116405",
+                        "highlight": null,
+                        "matchingFacts": [],
+                        "nonMatchingFacts": [
+                            {
+                                "__typename": "JobMatchingHighlightsJobKeyfactStringV2",
+                                "type": "job_keyfact_employment_type",
+                                "localization": {
+                                    "localizationValue": "Full-time",
+                                    "__typename": "JobMatchingHighlightsLocalizableV2"
+                                },
+                                "localizationA11y": {
+                                    "localizationValue": "Full-time",
+                                    "__typename": "JobMatchingHighlightsLocalizableV2"
+                                }
+                            },
+                            {
+                                "__typename": "JobMatchingHighlightsJobKeyfactSalaryV2",
+                                "type": "job_keyfact_salary",
+                                "localization": {
+                                    "localizationValue": "EUR 70500 - EUR 93000",
+                                    "__typename": "JobMatchingHighlightsLocalizableV2"
+                                },
+                                "localizationA11y": {
+                                    "localizationValue": "EUR 70500 - EUR 93000",
+                                    "__typename": "JobMatchingHighlightsLocalizableV2"
+                                },
+                                "value": {
+                                    "currency": "EUR",
+                                    "minimum": 70500,
+                                    "maximum": 93000,
+                                    "__typename": "SalaryRange"
+                                }
+                            }
+                        ],
+                        "__typename": "JobMatchingHighlightsV2"
+                    },
+                    "__typename": "JobItemResult"
+                }
+            ],
+            "aggregations": null,
+            "boundedTotal": {
+                "total": 83,
+                "bound": 1000,
+                "countType": "EXACT",
+                "__typename": "BoundedTotal"
+            },
+            "__typename": "JobSearchResult"
+        }
+    }
+}

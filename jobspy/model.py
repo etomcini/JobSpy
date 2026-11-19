@@ -238,11 +238,17 @@ class Site(Enum):
     NAUKRI = "naukri"
     BDJOBS = "bdjobs"
     HELLOWORK = "hellowork"
+    XING = "xing"
+
+
+def default_scraper_sites() -> list[Site]:
+    return [site for site in Site if site not in {Site.GOOGLE, Site.XING}]
 
 
 class ScraperInput(BaseModel):
     site_name: list[Site] = Field(
-        [site for site in Site if site != Site.GOOGLE], min_length=1
+        default_factory=default_scraper_sites,
+        min_length=1,
     )
     search_term: str | None = None
     google_search_term: str | None = None
