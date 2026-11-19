@@ -3,9 +3,9 @@ requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [project]
-name = "python-jobspy"
-version = "1.4.1"
-description = "JobSpy: job scraper for LinkedIn, Indeed, Glassdoor, ZipRecruiter, Bayt, Naukri, BDJobs & HelloWork"
+name = "python-jobspy-xing"
+version = "1.4.1.post1"
+description = "JobSpy fork with XING support for searching job listings across multiple platforms"
 authors = [
     { name = "Cullen Watson", email = "cullen@cullenwatson.com" },
     { name = "Zachary Hampton", email = "zachary@zacharysproducts.com" },
@@ -15,7 +15,7 @@ maintainers = [
 ]
 readme = "README.md"
 license = "MIT"
-keywords = ["jobs-scraper", "linkedin", "indeed", "glassdoor", "ziprecruiter", "bayt", "naukri", "bdjobs", "hellowork", "cli", "mcp", "mcp-server"]
+keywords = ["jobs-scraper", "xing", "linkedin", "indeed", "glassdoor", "ziprecruiter", "bayt", "naukri", "bdjobs", "hellowork", "cli", "mcp", "mcp-server"]
 requires-python = ">=3.10"
 dependencies = [
     "requests>=2.31.0",
@@ -35,10 +35,11 @@ jobspy = "jobspy.cli:main"
 mcp-jobspy = "jobspy.mcp:main"
 
 [project.urls]
-Homepage = "https://github.com/speedyapply/JobSpy"
-Issues = "https://github.com/speedyapply/JobSpy/issues"
-"Release notes" = "https://github.com/speedyapply/JobSpy/releases"
-Documentation = "https://github.com/speedyapply/JobSpy#readme"
+Homepage = "https://github.com/etomcini/JobSpy"
+Issues = "https://github.com/etomcini/JobSpy/issues"
+"Release notes" = "https://github.com/etomcini/JobSpy/releases"
+Documentation = "https://github.com/etomcini/JobSpy#readme"
+Upstream = "https://github.com/speedyapply/JobSpy"
 
 [tool.poetry]
 packages = [{ include = "jobspy" }]
