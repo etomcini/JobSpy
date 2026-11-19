@@ -12,6 +12,7 @@ authors = [
 ]
 maintainers = [
     { name = "Kirk Watson", email = "kirk@klwindustries.com" },
+    { name = "Eolian Tomçini", email = "tomcinieolian@gmail.com"},
 ]
 readme = "README.md"
 license = "MIT"
